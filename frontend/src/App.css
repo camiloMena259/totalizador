@@ -1,75 +1,23 @@
-.contenedor {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px;
-  font-family: system-ui, sans-serif;
-}
+/* App.css
+   Estilos específicos de la vista Totalizador.
+   Los tokens y componentes compartidos viven en styles/theme.css */
 
-.carga {
+.carga-card__row {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
-button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  background: #1a56db;
-  color: white;
-  cursor: pointer;
+.carga-card__campo-banco {
+  min-width: 220px;
 }
 
-button:disabled {
-  background: #94a3b8;
-  cursor: not-allowed;
+.carga-card__campo-archivo {
+  flex: 1 1 260px;
+  min-width: 240px;
 }
 
-.error {
-  color: #b91c1c;
-}
-
-.tarjetas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin: 20px 0;
-}
-
-.tarjeta {
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  border-radius: 8px;
-  background: #f1f5f9;
-}
-
-.tarjeta .etiqueta {
-  font-size: 12px;
-  color: #475569;
-  text-transform: uppercase;
-}
-
-.tarjeta .valor {
-  font-size: 22px;
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 24px;
-  font-size: 14px;
-}
-
-th, td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #e2e8f0;
-  text-align: left;
-}
-
-th {
-  background: #f8fafc;
+.carga-card__accion {
+  flex-shrink: 0;
 }

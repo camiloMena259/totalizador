@@ -9,23 +9,13 @@ export default function EtiquetaForm({
   const [palabras, setPalabras] = useState("");
 
   useEffect(() => {
-
     if (etiquetaEditar) {
-
       setEtiqueta(etiquetaEditar.etiqueta);
-
-      setPalabras(
-        etiquetaEditar.palabras_clave.join(", ")
-      );
-
+      setPalabras(etiquetaEditar.palabras_clave.join(", "));
     } else {
-
       setEtiqueta("");
-
       setPalabras("");
-
     }
-
   }, [etiquetaEditar]);
 
   function submit(e) {
@@ -41,68 +31,44 @@ export default function EtiquetaForm({
   }
 
   return (
-    <form
-      onSubmit={submit}
-      style={{
-        marginBottom: 30,
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        maxWidth: 600,
-      }}
-    >
+    <form onSubmit={submit} className="etiqueta-form">
+      <div className="etiqueta-form__row">
+        <div className="field etiqueta-form__campo-nombre">
+          <label htmlFor="etiqueta-nombre">Nombre de la etiqueta</label>
+          <input
+            id="etiqueta-nombre"
+            type="text"
+            placeholder="Ej: Servicios públicos"
+            value={etiqueta}
+            onChange={(e) => setEtiqueta(e.target.value)}
+            required
+          />
+        </div>
 
-      <h2>
+        <div className="field etiqueta-form__campo-palabras">
+          <label htmlFor="etiqueta-palabras">Palabras clave</label>
+          <textarea
+            id="etiqueta-palabras"
+            rows={2}
+            placeholder="GMF, 4X1000, TRANSFERENCIA..."
+            value={palabras}
+            onChange={(e) => setPalabras(e.target.value)}
+          />
+          <span className="field__ayuda">Separadas por comas. Se busca coincidencia en el concepto del movimiento.</span>
+        </div>
+      </div>
 
-        {etiquetaEditar
-          ? "Editar etiqueta"
-          : "Nueva etiqueta"}
-
-      </h2>
-
-      <input
-        placeholder="Etiqueta"
-        value={etiqueta}
-        onChange={(e) =>
-          setEtiqueta(e.target.value)
-        }
-      />
-
-      <textarea
-        rows={4}
-        placeholder="GMF,4X1000,TRANSFERENCIA..."
-        value={palabras}
-        onChange={(e) =>
-          setPalabras(e.target.value)
-        }
-      />
-
-      <div>
-
-        <button type="submit">
-
-          Guardar
-
+      <div className="etiqueta-form__acciones">
+        <button type="submit" className="btn btn-primary">
+          {etiquetaEditar ? 'Guardar cambios' : 'Agregar etiqueta'}
         </button>
 
         {etiquetaEditar && (
-
-          <button
-            type="button"
-            onClick={cancelar}
-            style={{
-              marginLeft: 10,
-            }}
-          >
-
+          <button type="button" onClick={cancelar} className="btn btn-ghost">
             Cancelar
-
           </button>
-
         )}
-
       </div>
-
     </form>
   );
 }

@@ -12,6 +12,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import './tablas.css';
 
 function FilaEtiqueta({ etiqueta, onEditar, onEliminar }) {
   const {
@@ -26,7 +27,7 @@ function FilaEtiqueta({ etiqueta, onEditar, onEliminar }) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    background: isDragging ? "#f0f0f0" : undefined,
+    background: isDragging ? "#FAFBFC" : undefined,
   };
 
   return (
@@ -34,19 +35,23 @@ function FilaEtiqueta({ etiqueta, onEditar, onEliminar }) {
       <td
         {...attributes}
         {...listeners}
-        style={{ cursor: "grab", textAlign: "center", width: 30 }}
+        className="celda-arrastre"
         title="Arrastrar para cambiar prioridad"
       >
         ⠿
       </td>
 
-      <td>{etiqueta.etiqueta}</td>
-
-      <td>{etiqueta.palabras_clave.join(", ")}</td>
-
       <td>
-        <button onClick={() => onEditar(etiqueta)}>Editar</button>{" "}
-        <button onClick={() => onEliminar(etiqueta.etiqueta)}>
+        <span className="badge-etiqueta">{etiqueta.etiqueta}</span>
+      </td>
+
+      <td className="celda-palabras">{etiqueta.palabras_clave.join(", ")}</td>
+
+      <td className="celda-acciones">
+        <button className="btn btn-secondary btn-sm" onClick={() => onEditar(etiqueta)}>
+          Editar
+        </button>
+        <button className="btn btn-danger-text btn-sm" onClick={() => onEliminar(etiqueta.etiqueta)}>
           Eliminar
         </button>
       </td>
@@ -76,45 +81,64 @@ export default function EtiquetasTable({
     onReordenar(arrayMove(etiquetas, oldIndex, newIndex));
   }
 
+  if (etiquetas.length === 0) {
+    return (
+      <div className="empty-state">
+        <span className="empty-state__icon">🏷️</span>
+        <strong>Todavía no creaste etiquetas</strong>
+        <span>Usá el formulario de arriba para crear la primera. Las etiquetas se usan para clasificar automáticamente los movimientos.</span>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <p style={{ color: "#666", fontSize: 14 }}>
-        La fila más arriba tiene mayor prioridad: si un concepto matchea
-        varias etiquetas, gana la que esté más arriba en la lista.
-      </p>
+    <div className="tablas-scope">
+      <div className="tabla-card">
+        <div className="tabla-header">
+          <h2 className="tabla-titulo">
+            Etiquetas configuradas
+            <span className="conteo">{etiquetas.length}</span>
+          </h2>
+          <p className="tabla-hint">
+            La fila más arriba tiene mayor prioridad: si un concepto matchea varias etiquetas, gana la que esté más arriba.
+          </p>
+        </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <table width="100%" border="1" cellPadding="8">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Etiqueta</th>
-              <th>Palabras clave</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
+        <div className="tabla-wrapper">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <table className="tabla">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Etiqueta</th>
+                  <th>Palabras clave</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
 
-          <tbody>
-            <SortableContext
-              items={etiquetas.map((e) => e.etiqueta)}
-              strategy={verticalListSortingStrategy}
-            >
-              {etiquetas.map((e) => (
-                <FilaEtiqueta
-                  key={e.etiqueta}
-                  etiqueta={e}
-                  onEditar={onEditar}
-                  onEliminar={onEliminar}
-                />
-              ))}
-            </SortableContext>
-          </tbody>
-        </table>
-      </DndContext>
+              <tbody>
+                <SortableContext
+                  items={etiquetas.map((e) => e.etiqueta)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {etiquetas.map((e) => (
+                    <FilaEtiqueta
+                      key={e.etiqueta}
+                      etiqueta={e}
+                      onEditar={onEditar}
+                      onEliminar={onEliminar}
+                    />
+                  ))}
+                </SortableContext>
+              </tbody>
+            </table>
+          </DndContext>
+        </div>
+      </div>
     </div>
   );
 }

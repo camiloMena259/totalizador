@@ -218,3 +218,36 @@ th.sortable button:hover {
   border-top: 2px solid var(--color-border-strong);
   background: #FAFBFC;
 }
+
+.tabla-hint {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--color-ink-muted);
+  margin: -8px 0 0;
+}
+
+.celda-arrastre {
+  cursor: grab;
+  text-align: center;
+  width: 30px;
+  color: var(--color-ink-faint, var(--color-ink-muted));
+}
+
+.celda-arrastre:active {
+  cursor: grabbing;
+}
+
+.celda-palabras {
+  color: var(--color-ink-muted);
+}
+
+.celda-acciones {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12.5px;
+}

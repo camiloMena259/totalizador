@@ -1,0 +1,25 @@
+/* pages/etiquetas.css */
+
+.etiqueta-form__row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.etiqueta-form__campo-nombre {
+  flex: 1 1 220px;
+}
+
+.etiqueta-form__campo-palabras {
+  flex: 2 1 320px;
+}
+
+.etiqueta-form__acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.etiquetas-page .empty-state {
+  margin-top: 20px;
+}
