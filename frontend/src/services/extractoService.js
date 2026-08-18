@@ -11,6 +11,12 @@ export const BANCOS = {
   occidente: { label: 'Banco de Occidente', endpoint: `${API_BASE}/occidente` },
   popular: { label: 'Banco Popular', endpoint: `${API_BASE}/popular` },
   bbva: { label: 'BBVA', endpoint: `${API_BASE}/bbva` },
+  avvillas: {label: 'Banco AV Villas', endpoint: `${API_BASE}/avvillas` },
+  bancoomeva: {label: 'Bancoomeva', endpoint: `${API_BASE}/bancoomeva`},
+  fidubogota: {label: 'Fidu Bogotá', endpoint: `${API_BASE}/fidubogota`},
+  cajasocial: {label: 'Caja Social', endpoint: `${API_BASE}/caja_social`},
+  davivienda: {label: 'Davivienda', endpoint: `${API_BASE}/davivienda`},
+  bogota: {label: 'Banco de Bogotá', endpoint: `${API_BASE}/bogota`},
 };
 
 export async function totalizarExtracto(archivo, banco) {

@@ -3,8 +3,16 @@ import io
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from services.extractor import extract_extracto_bbva, extract_extracto_occidente,extract_extracto_popular
 from services.classifier import clasificar_movimientos
+from services.popular_extractor import extract_extracto_popular
+from services.occidente_extractor import extract_extracto_occidente
+from services.bbva_extractor import extract_extracto_bbva
+from services.avVillas_extractor import extract_extracto_avvillas
+from services.bancoomeva_extractor import extract_extracto_bancoomeva
+from services.figuBogota_extractor import extract_extracto_fidubogota
+from services.cajaSocial_extractor import extract_extracto_caja_social
+from services.davivienda_extractor import extract_extracto_davivienda
+from services.bancoBogota_extractor import extract_extracto_bogota
 from services.totalizer import totalizar
 from models.schemas import TotalizacionResponse
 from typing import List
@@ -79,36 +87,56 @@ async def totalizar_extracto_popular(file: UploadFile = File(...)) -> Totalizaci
 async def totalizar_extracto_bbva(file: UploadFile = File(...)) -> TotalizacionResponse:
     return await _procesar_extracto(file, extract_extracto_bbva)
 
+@app.post("/api/extractos/totalizar/avvillas", response_model=TotalizacionResponse)
+async def totalizar_extracto_avvillas(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_avvillas)
+
+@app.post("/api/extractos/totalizar/bancoomeva", response_model=TotalizacionResponse)
+async def totalizar_extracto_bancoomeva(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_bancoomeva)
+
 @app.post("/api/extractos/totalizar/occidente", response_model=TotalizacionResponse)
 async def totalizar_extracto_occidente(file: UploadFile = File(...)) -> TotalizacionResponse:
     return await _procesar_extracto(file, extract_extracto_occidente)
 
+@app.post("/api/extractos/totalizar/fidubogota", response_model=TotalizacionResponse)
+async def totalizar_extracto_fidubogota(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_fidubogota)
+
+@app.post("/api/extractos/totalizar/caja_social", response_model=TotalizacionResponse)
+async def totalizar_extracto_caja_social(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_caja_social)
+
+@app.post("/api/extractos/totalizar/davivienda", response_model=TotalizacionResponse)
+async def totalizar_extracto_davivienda(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_davivienda)
+
+@app.post("/api/extractos/totalizar/bogota", response_model=TotalizacionResponse)
+async def totalizar_extracto_bogota(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_bogota)
 
 # Se mantiene el endpoint original (sin banco en la URL) por compatibilidad
 # hacia atrás; equivale al de Popular, que era el comportamiento previo.
-@app.post("/api/extractos/totalizar", response_model=TotalizacionResponse)
-async def totalizar_extracto(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_popular)
 
-@app.post("/api/etiquetas")
-async def crear_etiqueta(etiqueta: EtiquetaCreate):
-    return agregar_etiqueta(
-        etiqueta=etiqueta.etiqueta,
-        palabras_clave=etiqueta.palabras_clave,
-        posicion=etiqueta.posicion
-    )
+# @app.post("/api/etiquetas")
+# async def crear_etiqueta(etiqueta: EtiquetaCreate):
+#     return agregar_etiqueta(
+#         etiqueta=etiqueta.etiqueta,
+#         palabras_clave=etiqueta.palabras_clave,
+#         posicion=etiqueta.posicion
+#     )
 
-@app.put("/api/etiquetas/{etiqueta}")
-async def actualizar_etiqueta_endpoint(etiqueta: str, update_data: EtiquetaUpdate):
-    return actualizar_etiqueta(
-        etiqueta=etiqueta,
-        palabras_clave=update_data.palabras_clave,
-        nuevo_nombre=update_data.nuevo_nombre
-    )
+# @app.put("/api/etiquetas/{etiqueta}")
+# async def actualizar_etiqueta_endpoint(etiqueta: str, update_data: EtiquetaUpdate):
+#     return actualizar_etiqueta(
+#         etiqueta=etiqueta,
+#         palabras_clave=update_data.palabras_clave,
+#         nuevo_nombre=update_data.nuevo_nombre
+#     )
 
-@app.delete("/api/etiquetas/{etiqueta}")
-async def eliminar_etiqueta_endpoint(etiqueta: str):
-    return eliminar_etiqueta(etiqueta)
+# @app.delete("/api/etiquetas/{etiqueta}")
+# async def eliminar_etiqueta_endpoint(etiqueta: str):
+#     return eliminar_etiqueta(etiqueta)
 
 @app.post("/api/etiquetas")
 async def crear_etiqueta(body: EtiquetaCreate):

@@ -130,3 +130,20 @@ def clasificar_movimientos(rows: List[Dict]) -> List[Dict]:
     for row in rows:
         row["ETIQUETA"] = clasificar_concepto(row.get("CONCEPTO", ""))
     return rows
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
