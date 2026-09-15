@@ -13,12 +13,12 @@
   --color-accent-soft: #E7EFEF;
 
   /* crédito: rojo suave | débito: verde leve */
-  --color-credito-bg: #FCEBEA;
-  --color-credito-text: #B3423A;
-  --color-credito-border: #F3D3D1;
-  --color-debito-bg: #E9F6EE;
-  --color-debito-text: #2F7A4F;
-  --color-debito-border: #CDEBD9;
+  --color-credito-bg: #E9F6EE;
+  --color-credito-text: #2f717a;
+  --color-credito-border: #CDEBD9;
+  --color-debito-bg: #FCEBEA;
+  --color-debito-text: #B3423A;
+  --color-debito-border: #F3D3D1;
 
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--color-ink);

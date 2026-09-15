@@ -31,3 +31,8 @@ class TotalizacionResponse(BaseModel):
     total_debitos: float
     total_creditos: float
 
+
+class ReporteExportRequest(TotalizacionResponse):
+    banco: str
+    nombre_archivo: str
+

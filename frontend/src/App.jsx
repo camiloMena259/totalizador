@@ -3,11 +3,12 @@
 // la llamada al backend. La presentación vive en components/.
 
 import { useState } from 'react';
-import { totalizarExtracto, BANCOS } from './services/extractoService';
+import { totalizarExtracto, descargarReporteExcel, BANCOS } from './services/extractoService';
 
 import ResumenTarjetas from './components/ResumenTarjetas';
 import ResumenPorEtiquetaTabla from './components/ResumenPorEtiquetaTabla';
 import MovimientosTabla from './components/MovimientosTabla';
+import DescargarReporte from './components/DescargarReporte';
 import EtiquetasPage from './pages/EtiquetasPage';
 
 import './styles/theme.css';
@@ -20,6 +21,7 @@ export default function App() {
   const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
   const [resultado, setResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState(null);
 
   const onBancoSeleccionado = (event) => {
@@ -51,6 +53,20 @@ export default function App() {
       setError(err.message);
     } finally {
       setCargando(false);
+    }
+  };
+
+  const descargarReporte = async (nombreArchivo) => {
+    if (!resultado) return;
+    setDescargando(true);
+    try {
+      await descargarReporteExcel(
+        resultado,
+        BANCOS[bancoSeleccionado]?.label ?? bancoSeleccionado,
+        nombreArchivo
+      );
+    } finally {
+      setDescargando(false);
     }
   };
 
@@ -162,6 +178,12 @@ export default function App() {
 
           {resultado && (
             <section className="resultado">
+              <DescargarReporte
+                bancoLabel={BANCOS[bancoSeleccionado]?.label}
+                descargando={descargando}
+                onDescargar={descargarReporte}
+              />
+
               <h3 className="section-title">Resumen general</h3>
               <ResumenTarjetas resultado={resultado} />
 

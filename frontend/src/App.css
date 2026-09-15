@@ -21,3 +21,23 @@
 .carga-card__accion {
   flex-shrink: 0;
 }
+
+.descarga-reporte {
+  margin-top: 20px;
+}
+
+.descarga-reporte .card__header {
+  margin-bottom: 14px;
+}
+
+.descarga-reporte__row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.descarga-reporte__campo {
+  flex: 1 1 280px;
+  min-width: 220px;
+}

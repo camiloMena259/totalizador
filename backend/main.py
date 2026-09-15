@@ -2,6 +2,7 @@ import io
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from services.classifier import clasificar_movimientos
 from services.popular_extractor import extract_extracto_popular
@@ -14,7 +15,9 @@ from services.cajaSocial_extractor import extract_extracto_caja_social
 from services.davivienda_extractor import extract_extracto_davivienda
 from services.bancoBogota_extractor import extract_extracto_bogota
 from services.totalizer import totalizar
-from models.schemas import TotalizacionResponse
+from models.schemas import TotalizacionResponse, ReporteExportRequest
+from services.reporte_excel import generar_excel_reporte, sanitizar_nombre_archivo
+from urllib.parse import quote
 from typing import List
 import services.classifier as classifier
 
@@ -34,10 +37,18 @@ app = FastAPI(title="Totalizador de Extractos Bancarios")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://[::1]:5173",
+        "http://[::1]:5174",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 from pydantic import BaseModel
@@ -114,6 +125,33 @@ async def totalizar_extracto_davivienda(file: UploadFile = File(...)) -> Totaliz
 @app.post("/api/extractos/totalizar/bogota", response_model=TotalizacionResponse)
 async def totalizar_extracto_bogota(file: UploadFile = File(...)) -> TotalizacionResponse:
     return await _procesar_extracto(file, extract_extracto_bogota)
+
+
+@app.post("/api/extractos/reporte")
+def descargar_reporte(payload: ReporteExportRequest):
+    """Genera un Excel con banco, resumen general, detalle y movimientos."""
+    nombre = sanitizar_nombre_archivo(payload.nombre_archivo)
+    resultado = TotalizacionResponse(
+        movimientos=payload.movimientos,
+        resumen_por_etiqueta=payload.resumen_por_etiqueta,
+        total_gravamen=payload.total_gravamen,
+        total_intereses=payload.total_intereses,
+        total_debitos=payload.total_debitos,
+        total_creditos=payload.total_creditos,
+    )
+    contenido = generar_excel_reporte(
+        resultado=resultado,
+        banco=payload.banco.strip() or "Sin banco",
+        nombre_archivo=nombre,
+    )
+    nombre_header = quote(nombre)
+    return StreamingResponse(
+        io.BytesIO(contenido),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{nombre_header}",
+        },
+    )
 
 # Se mantiene el endpoint original (sin banco en la URL) por compatibilidad
 # hacia atrás; equivale al de Popular, que era el comportamiento previo.

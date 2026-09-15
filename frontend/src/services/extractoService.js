@@ -40,3 +40,34 @@ export async function totalizarExtracto(archivo, banco) {
 
   return respuesta.json();
 }
+
+export async function descargarReporteExcel(resultado, bancoLabel, nombreArchivo) {
+  const respuesta = await fetch('http://localhost:8000/api/extractos/reporte', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...resultado,
+      banco: bancoLabel,
+      nombre_archivo: nombreArchivo,
+    }),
+  });
+
+  if (!respuesta.ok) {
+    const cuerpo = await respuesta.json().catch(() => ({}));
+    throw new Error(cuerpo.detail || 'No se pudo generar el Excel.');
+  }
+
+  const blob = await respuesta.blob();
+  const nombre = nombreArchivo.toLowerCase().endsWith('.xlsx')
+    ? nombreArchivo
+    : `${nombreArchivo}.xlsx`;
+
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  URL.revokeObjectURL(url);
+}
