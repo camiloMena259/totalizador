@@ -8,8 +8,9 @@ RUN npm install
 
 COPY . .
 
-ENV VITE_API_BASE_URL=http://192.168.10.157:8004/api/extractos/totalizar
-ENV API_ETIQUETA=http://192.168.10.157:8004/api/etiquetas
+ENV API_BASE=http://192.168.14.15:8004/api/extractos/totalizar
+ENV API_REPORTE=http://192.168.14.15:8004/api/extractos/reporte
+ENV API_ETIQUETA=http://192.168.14.15:8004/api/etiquetas
 
 RUN npm run build
 

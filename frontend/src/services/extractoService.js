@@ -2,8 +2,8 @@
 // Única responsabilidad: hablar con el backend. No sabe nada de React
 // ni de cómo se pinta el resultado.
 
-//export const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/extractos/totalizar";
-const API_BASE = 'http://localhost:8000/api/extractos/totalizar';
+const API_BASE = import.meta.env.API_BASE || "http://localhost:8000/api/extractos/totalizar";
+const API_REPORTE = import.meta.env.API_REPORTE || "http://localhost:8000/api/extractos/reporte";
 
 // Un endpoint distinto por banco. Agregar un banco nuevo es agregar una
 // entrada aquí (y su función extractora en el backend).
@@ -42,7 +42,7 @@ export async function totalizarExtracto(archivo, banco) {
 }
 
 export async function descargarReporteExcel(resultado, bancoLabel, nombreArchivo) {
-  const respuesta = await fetch('http://localhost:8000/api/extractos/reporte', {
+  const respuesta = await fetch(API_REPORTE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

@@ -3,7 +3,7 @@ import EtiquetasTable from "../components/EtiquetasTable";
 import EtiquetaForm from "../components/EtiquetasForm";
 import "./etiquetas.css";
 
-const API = "http://localhost:8000/api/etiquetas";
+const API = `${import.meta.env.API_ETIQUETA}`;
 
 export default function EtiquetasPage() {
   const [etiquetas, setEtiquetas] = useState([]);
