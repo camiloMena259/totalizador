@@ -4,13 +4,17 @@
 
 const API_BASE = import.meta.env.API_BASE || "http://localhost:8000/api/extractos/totalizar";
 const API_REPORTE = import.meta.env.API_REPORTE || "http://localhost:8000/api/extractos/reporte";
+export const API_ETIQUETAS = import.meta.env.API_ETIQUETA || "http://localhost:8000/api/etiquetas";
 
 // Un endpoint distinto por banco. Agregar un banco nuevo es agregar una
 // entrada aquí (y su función extractora en el backend).
 export const BANCOS = {
   occidente: { label: 'Banco de Occidente', endpoint: `${API_BASE}/occidente` },
+  occidente_detalle: { label: 'Occidente (detalle de movimientos)', endpoint: `${API_BASE}/occidente/detalle` },
   popular: { label: 'Banco Popular', endpoint: `${API_BASE}/popular` },
+  popular_detalle: { label: 'Popular (detalle de movimientos)', endpoint: `${API_BASE}/popular/detalle` },
   bbva: { label: 'BBVA', endpoint: `${API_BASE}/bbva` },
+  bbva_detalle: { label: 'BBVA (detalle de movimientos)', endpoint: `${API_BASE}/bbva/detalle` },
   avvillas: {label: 'Banco AV Villas', endpoint: `${API_BASE}/avvillas` },
   bancoomeva: {label: 'Bancoomeva', endpoint: `${API_BASE}/bancoomeva`},
   fidubogota: {label: 'Fidu Bogotá', endpoint: `${API_BASE}/fidubogota`},

@@ -14,6 +14,9 @@ from services.figuBogota_extractor import extract_extracto_fidubogota
 from services.cajaSocial_extractor import extract_extracto_caja_social
 from services.davivienda_extractor import extract_extracto_davivienda
 from services.bancoBogota_extractor import extract_extracto_bogota
+from services.bbva_detalle_extractor import extract_detalle_bbva
+from services.occidente_detalle_extractor import extract_detalle_occidente
+from services.popular_detalle_extractor import extract_detalle_popular
 from services.totalizer import totalizar
 from models.schemas import TotalizacionResponse, ReporteExportRequest
 from services.reporte_excel import generar_excel_reporte, sanitizar_nombre_archivo
@@ -118,6 +121,18 @@ async def totalizar_extracto_davivienda(file: UploadFile = File(...)) -> Totaliz
 @app.post("/api/extractos/totalizar/bogota", response_model=TotalizacionResponse)
 async def totalizar_extracto_bogota(file: UploadFile = File(...)) -> TotalizacionResponse:
     return await _procesar_extracto(file, extract_extracto_bogota)
+
+@app.post("/api/extractos/totalizar/bbva/detalle", response_model=TotalizacionResponse)
+async def totalizar_detalle_bbva(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_detalle_bbva)
+
+@app.post("/api/extractos/totalizar/occidente/detalle", response_model=TotalizacionResponse)
+async def totalizar_detalle_occidente(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_detalle_occidente)
+
+@app.post("/api/extractos/totalizar/popular/detalle", response_model=TotalizacionResponse)
+async def totalizar_detalle_popular(file: UploadFile = File(...)) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_detalle_popular)
 
 
 @app.post("/api/extractos/reporte")

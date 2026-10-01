@@ -7,7 +7,10 @@
       "4X1000",
       "4X 1000",
       "4 X 1000",
-      "4X1.000"
+      "4X1.000",
+      "4X1.00",
+      "IMP. DECRETO",
+      "CARGO POR IMPUE"
     ]
   },
   {
@@ -47,7 +50,8 @@
     "palabras_clave": [
       "TRANSFERENCIA",
       "TRANSF",
-      "PSE"
+      "PSE",
+      "CARGOS POR A.C.H"
     ]
   },
   {
@@ -70,7 +74,14 @@
   {
     "etiqueta": "PAGO",
     "palabras_clave": [
-      "PAGO"
+      "PAGO",
+      "CHEQUE"
+    ]
+  },
+  {
+    "etiqueta": "prueba 45",
+    "palabras_clave": [
+      "EXTRANJERO CARGO GTIAS"
     ]
   }
 ]

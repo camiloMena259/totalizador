@@ -77,7 +77,7 @@ export default function App() {
           <span className="app-eyebrow">Extractos bancarios</span>
           <h1 className="app-title">Totalizador de extractos</h1>
           <p className="app-subtitle">
-            Cargá un extracto en PDF y obtené el resumen de movimientos, etiquetado y totalizado.
+            Cargá un extracto o un detalle de movimientos en PDF y obtené el resumen etiquetado y totalizado.
           </p>
         </div>
 
@@ -172,7 +172,7 @@ export default function App() {
             <div className="empty-state" style={{ marginTop: 20 }}>
               <span className="empty-state__icon">🧾</span>
               <strong>Todavía no hay nada para mostrar</strong>
-              <span>Elegí el banco correspondiente, cargá el PDF del extracto y tocá "Totalizar" para ver el resumen.</span>
+              <span>Elegí el banco y el tipo de documento, cargá el PDF y tocá "Totalizar".</span>
             </div>
           )}
 

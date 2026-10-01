@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import EtiquetasTable from "../components/EtiquetasTable";
 import EtiquetaForm from "../components/EtiquetasForm";
+import { API_ETIQUETAS } from "../services/extractoService";
 import "./etiquetas.css";
 
-const API = `${import.meta.env.API_ETIQUETA}`;
+function urlEtiqueta(nombre) {
+  return `${API_ETIQUETAS}/${encodeURIComponent(nombre)}`;
+}
 
 export default function EtiquetasPage() {
   const [etiquetas, setEtiquetas] = useState([]);
@@ -15,7 +18,7 @@ export default function EtiquetasPage() {
     setCargando(true);
     setError(null);
     try {
-      const res = await fetch(API);
+      const res = await fetch(API_ETIQUETAS);
       if (!res.ok) throw new Error("No se pudieron cargar las etiquetas.");
       const data = await res.json();
       setEtiquetas(data);
@@ -32,7 +35,7 @@ export default function EtiquetasPage() {
 
   async function guardar(datos) {
     if (editando) {
-      await fetch(`${API}/${editando.etiqueta}`, {
+      await fetch(urlEtiqueta(editando.etiqueta), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -41,7 +44,7 @@ export default function EtiquetasPage() {
         }),
       });
     } else {
-      await fetch(API, {
+      await fetch(API_ETIQUETAS, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(datos),
@@ -55,7 +58,7 @@ export default function EtiquetasPage() {
   async function eliminar(nombre) {
     if (!window.confirm(`¿Eliminar la etiqueta "${nombre}"?`)) return;
 
-    await fetch(`${API}/${nombre}`, { method: "DELETE" });
+    await fetch(urlEtiqueta(nombre), { method: "DELETE" });
     cargarEtiquetas();
   }
 
@@ -64,7 +67,7 @@ export default function EtiquetasPage() {
     setEtiquetas(nuevaLista); // optimista: se ve el cambio al instante
 
     try {
-      const res = await fetch(`${API}/reordenar`, {
+      const res = await fetch(`${API_ETIQUETAS}/reordenar`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

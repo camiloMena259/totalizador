@@ -1,11 +1,11 @@
 [
-  {"etiqueta": "GRAVAMEN", "palabras_clave": ["GRAVAMEN A LOS MOVIMIENTOS", "GMF", "4X1000", "4X 1000", "4 X 1000"]},
+  {"etiqueta": "GRAVAMEN", "palabras_clave": ["GRAVAMEN A LOS MOVIMIENTOS", "GMF", "4X1000", "4X 1000", "4 X 1000", "4X1.000", "4X1.00", "IMP. DECRETO", "CARGO POR IMPUE"]},
   {"etiqueta": "IVA", "palabras_clave": ["IVA COBRADO", "IVA"]},
   {"etiqueta": "RETENCION", "palabras_clave": ["RETENCION", "RETEFUENTE", "RETEICA"]},
   {"etiqueta": "INTERESES", "palabras_clave": ["INTERES", "RENDIMIENTO FINANCIERO", "RENDIMIENTOS"]},
   {"etiqueta": "COMISION", "palabras_clave": ["COMISION", "CUOTA DE MANEJO", "CUOTA MANEJO"]},
-  {"etiqueta": "TRANSFERENCIA", "palabras_clave": ["TRANSFERENCIA", "TRANSF", "PSE"]},
+  {"etiqueta": "TRANSFERENCIA", "palabras_clave": ["TRANSFERENCIA", "TRANSF", "PSE", "CARGOS POR A.C.H"]},
   {"etiqueta": "RETIRO", "palabras_clave": ["RETIRO", "CAJERO", "ATM"]},
   {"etiqueta": "CONSIGNACION", "palabras_clave": ["CONSIGNACION", "DEPOSITO", "ABONO", "RECAUDO"]},
-  {"etiqueta": "PAGO", "palabras_clave": ["PAGO"]}
+  {"etiqueta": "PAGO", "palabras_clave": ["PAGO", "CHEQUE"]}
 ]
