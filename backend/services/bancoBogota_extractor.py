@@ -5,7 +5,7 @@ from typing import Any
 
 import logging
 import re
-import pdfplumber
+from services.pdf_clave import abrir_extracto
 
 logger = logging.getLogger(__name__)
 
@@ -368,9 +368,7 @@ def extract_extracto_bogota(
     suma_credito = Decimal("0")
     suma_debito = Decimal("0")
 
-    with pdfplumber.open(
-        pdf_path_or_file
-    ) as pdf:
+    with abrir_extracto(pdf_path_or_file) as pdf:
         saldo_inicial = None
         if pdf.pages:
             saldo_inicial = _extraer_saldo_inicial_bogota(

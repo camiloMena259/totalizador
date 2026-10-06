@@ -23,7 +23,7 @@ export const BANCOS = {
   bogota: {label: 'Banco de Bogotá', endpoint: `${API_BASE}/bogota`},
 };
 
-export async function totalizarExtracto(archivo, banco) {
+export async function totalizarExtracto(archivo, banco, claveExtracto) {
   const config = BANCOS[banco];
   if (!config) {
     throw new Error(`Banco no soportado: ${banco}`);
@@ -31,11 +31,27 @@ export async function totalizarExtracto(archivo, banco) {
 
   const formData = new FormData();
   formData.append('file', archivo);
+  const clave = (claveExtracto || '').trim();
+  if (clave) {
+    formData.append('clave_extracto', clave);
+  }
 
   const respuesta = await fetch(config.endpoint, {
     method: 'POST',
     body: formData,
   });
+
+  if (respuesta.status === 409) {
+    const cuerpo = await respuesta.json().catch(() => ({}));
+    if (cuerpo.requiere_contrasena) {
+      const error = new Error(
+        cuerpo.mensaje || 'El extracto bancario está protegido con contraseña.'
+      );
+      error.requiereContrasena = true;
+      error.claveInvalida = Boolean(cuerpo.clave_invalida);
+      throw error;
+    }
+  }
 
   if (!respuesta.ok) {
     const cuerpo = await respuesta.json().catch(() => ({}));

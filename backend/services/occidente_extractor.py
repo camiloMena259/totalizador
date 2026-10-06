@@ -3,7 +3,8 @@ from typing import Any
 from services.extractor import _log_fila_descartada, _filtrar_columnas
 
 import re
-import pdfplumber
+
+from services.pdf_clave import abrir_extracto
 
 _TOKEN_DIA_OCC = re.compile(r'^\d{2}$')
 _TOKEN_MONTO_OCC = re.compile(r'^[\d.,]+\.\d{2}$')       # "3,167,922.00" / "0.00"
@@ -28,7 +29,7 @@ def extract_extracto_occidente(pdf_path_or_file, columns: list[str] | None = Non
     """
     rows: list[dict] = []
 
-    with pdfplumber.open(pdf_path_or_file) as pdf:
+    with abrir_extracto(pdf_path_or_file) as pdf:
         for page in pdf.pages:
             text = page.extract_text() or ""
             for raw_line in text.split("\n"):

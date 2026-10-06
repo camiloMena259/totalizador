@@ -16,7 +16,7 @@ import logging
 import re
 from collections.abc import Callable
 
-import pdfplumber
+from services.pdf_clave import abrir_extracto
 
 from services.extractor import _filtrar_columnas, _normalizar_texto, _quitar_tildes
 
@@ -106,7 +106,7 @@ def extract_detalle_portal(
 ) -> list[dict]:
     rows: list[dict] = []
 
-    with pdfplumber.open(pdf_path_or_file) as pdf:
+    with abrir_extracto(pdf_path_or_file) as pdf:
         for page in pdf.pages:
             for tabla in page.extract_tables() or []:
                 if not _es_tabla_movimientos(tabla):

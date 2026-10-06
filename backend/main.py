@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import io
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from services.classifier import clasificar_movimientos
 from services.popular_extractor import extract_extracto_popular
@@ -18,10 +20,11 @@ from services.bbva_detalle_extractor import extract_detalle_bbva
 from services.occidente_detalle_extractor import extract_detalle_occidente
 from services.popular_detalle_extractor import extract_detalle_popular
 from services.totalizer import totalizar
+from services.pdf_clave import ExtractoConClave, resolver_clave_extracto, usar_clave_extracto
 from models.schemas import TotalizacionResponse, ReporteExportRequest
 from services.reporte_excel import generar_excel_reporte, sanitizar_nombre_archivo
 from urllib.parse import quote
-from typing import List
+from typing import List, Optional
 import services.classifier as classifier
 
 
@@ -60,11 +63,34 @@ def reordenar_etiquetas_endpoint(payload: ReordenarPayload):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def _procesar_extracto(file: UploadFile, extractor_fn) -> TotalizacionResponse:
+def _respuesta_clave_extracto(exc: ExtractoConClave) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={
+            "requiere_contrasena": True,
+            "clave_invalida": exc.clave_invalida,
+            "mensaje": str(exc),
+        },
+    )
+
+
+def _clave_extracto_opcional(clave: Optional[str]) -> Optional[str]:
+    limpia = (clave or "").strip()
+    return limpia or None
+
+
+async def _procesar_extracto(
+    file: UploadFile,
+    extractor_fn,
+    clave_extracto: Optional[str] = None,
+) -> TotalizacionResponse:
     """
     Pipeline compartido por todos los bancos: valida el archivo, corre el
     extractor específico del banco recibido y luego el classifier/totalizer,
     que sí son comunes a todos los bancos por ahora.
+
+    Si el PDF del extracto está cifrado, prueba la clave por defecto (nit)
+    y, si no abre, responde 409 para que la pantalla pida la contraseña.
     """
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="El archivo debe ser un PDF")
@@ -72,7 +98,11 @@ async def _procesar_extracto(file: UploadFile, extractor_fn) -> TotalizacionResp
     contenido = await file.read()
 
     try:
-        rows = extractor_fn(io.BytesIO(contenido))
+        clave = resolver_clave_extracto(contenido, _clave_extracto_opcional(clave_extracto))
+        with usar_clave_extracto(clave):
+            rows = extractor_fn(io.BytesIO(contenido))
+    except ExtractoConClave as exc:
+        return _respuesta_clave_extracto(exc)
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"No se pudo procesar el PDF: {exc}")
 
@@ -87,52 +117,88 @@ async def _procesar_extracto(file: UploadFile, extractor_fn) -> TotalizacionResp
 
 
 @app.post("/api/extractos/totalizar/popular", response_model=TotalizacionResponse)
-async def totalizar_extracto_popular(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_popular)
+async def totalizar_extracto_popular(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_popular, clave_extracto)
 
 @app.post("/api/extractos/totalizar/bbva", response_model=TotalizacionResponse)
-async def totalizar_extracto_bbva(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_bbva)
+async def totalizar_extracto_bbva(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_bbva, clave_extracto)
 
 @app.post("/api/extractos/totalizar/avvillas", response_model=TotalizacionResponse)
-async def totalizar_extracto_avvillas(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_avvillas)
+async def totalizar_extracto_avvillas(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_avvillas, clave_extracto)
 
 @app.post("/api/extractos/totalizar/bancoomeva", response_model=TotalizacionResponse)
-async def totalizar_extracto_bancoomeva(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_bancoomeva)
+async def totalizar_extracto_bancoomeva(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_bancoomeva, clave_extracto)
 
 @app.post("/api/extractos/totalizar/occidente", response_model=TotalizacionResponse)
-async def totalizar_extracto_occidente(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_occidente)
+async def totalizar_extracto_occidente(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_occidente, clave_extracto)
 
 @app.post("/api/extractos/totalizar/fidubogota", response_model=TotalizacionResponse)
-async def totalizar_extracto_fidubogota(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_fidubogota)
+async def totalizar_extracto_fidubogota(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_fidubogota, clave_extracto)
 
 @app.post("/api/extractos/totalizar/caja_social", response_model=TotalizacionResponse)
-async def totalizar_extracto_caja_social(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_caja_social)
+async def totalizar_extracto_caja_social(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_caja_social, clave_extracto)
 
 @app.post("/api/extractos/totalizar/davivienda", response_model=TotalizacionResponse)
-async def totalizar_extracto_davivienda(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_davivienda)
+async def totalizar_extracto_davivienda(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_davivienda, clave_extracto)
 
 @app.post("/api/extractos/totalizar/bogota", response_model=TotalizacionResponse)
-async def totalizar_extracto_bogota(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_extracto_bogota)
+async def totalizar_extracto_bogota(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_bogota, clave_extracto)
 
 @app.post("/api/extractos/totalizar/bbva/detalle", response_model=TotalizacionResponse)
-async def totalizar_detalle_bbva(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_detalle_bbva)
+async def totalizar_detalle_bbva(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_detalle_bbva, clave_extracto)
 
 @app.post("/api/extractos/totalizar/occidente/detalle", response_model=TotalizacionResponse)
-async def totalizar_detalle_occidente(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_detalle_occidente)
+async def totalizar_detalle_occidente(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_detalle_occidente, clave_extracto)
 
 @app.post("/api/extractos/totalizar/popular/detalle", response_model=TotalizacionResponse)
-async def totalizar_detalle_popular(file: UploadFile = File(...)) -> TotalizacionResponse:
-    return await _procesar_extracto(file, extract_detalle_popular)
+async def totalizar_detalle_popular(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_detalle_popular, clave_extracto)
 
 
 @app.post("/api/extractos/reporte")

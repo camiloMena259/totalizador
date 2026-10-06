@@ -190,6 +190,7 @@ body {
 
 .field select,
 .field input[type='text'],
+.field input[type='password'],
 .field textarea {
   font-family: var(--font-body);
   font-size: 14px;

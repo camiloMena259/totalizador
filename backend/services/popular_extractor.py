@@ -2,7 +2,8 @@ from __future__ import annotations
 from services.extractor import _log_fila_descartada, _filtrar_columnas
 
 import re
-import pdfplumber
+
+from services.pdf_clave import abrir_extracto
 
 _TOKEN_FECHA = re.compile(r'^\d{2}$')       # "05", "01"...
 _TOKEN_ENTERO = re.compile(r'^[\d.,]+$')    # "3,663,764" / "0"
@@ -27,7 +28,7 @@ def extract_extracto_popular(pdf_path_or_file, columns: list[str] | None = None)
     """
     rows: list[dict] = []
 
-    with pdfplumber.open(pdf_path_or_file) as pdf:
+    with abrir_extracto(pdf_path_or_file) as pdf:
         for page in pdf.pages:
             text = page.extract_text() or ""
             for raw_line in text.split("\n"):

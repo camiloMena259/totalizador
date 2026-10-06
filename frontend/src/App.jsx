@@ -19,21 +19,30 @@ export default function App() {
 
   const [bancoSeleccionado, setBancoSeleccionado] = useState('occidente');
   const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
+  const [claveExtracto, setClaveExtracto] = useState('');
+  const [pideClave, setPideClave] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState(null);
 
+  const limpiarClave = () => {
+    setClaveExtracto('');
+    setPideClave(false);
+  };
+
   const onBancoSeleccionado = (event) => {
     setBancoSeleccionado(event.target.value);
     setResultado(null);
     setError(null);
+    limpiarClave();
   };
 
   const onArchivoSeleccionado = (event) => {
     setArchivoSeleccionado(event.target.files?.[0] ?? null);
     setResultado(null);
     setError(null);
+    limpiarClave();
   };
 
   const procesarExtracto = async () => {
@@ -46,10 +55,15 @@ export default function App() {
     try {
       const respuesta = await totalizarExtracto(
         archivoSeleccionado,
-        bancoSeleccionado
+        bancoSeleccionado,
+        pideClave ? claveExtracto : ''
       );
       setResultado(respuesta);
+      limpiarClave();
     } catch (err) {
+      if (err.requiereContrasena) {
+        setPideClave(true);
+      }
       setError(err.message);
     } finally {
       setCargando(false);
@@ -147,12 +161,29 @@ export default function App() {
                 </div>
               </div>
 
+              {pideClave && (
+                <div className="field carga-card__campo-clave">
+                  <label htmlFor="clave-extracto">Contraseña del PDF</label>
+                  <input
+                    id="clave-extracto"
+                    type="password"
+                    value={claveExtracto}
+                    autoComplete="off"
+                    placeholder="Contraseña del extracto"
+                    onChange={(event) => setClaveExtracto(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') procesarExtracto();
+                    }}
+                  />
+                </div>
+              )}
+
               <div className="carga-card__accion">
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={procesarExtracto}
-                  disabled={!archivoSeleccionado || cargando}
+                  disabled={!archivoSeleccionado || cargando || (pideClave && !claveExtracto.trim())}
                 >
                   {cargando && <span className="spinner" />}
                   {cargando ? 'Procesando…' : 'Totalizar'}

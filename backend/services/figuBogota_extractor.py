@@ -4,7 +4,7 @@ from services.extractor import _log_fila_descartada, _filtrar_columnas, _agrupar
 
 import logging
 import re
-import pdfplumber
+from services.pdf_clave import abrir_extracto
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +163,7 @@ def extract_extracto_fidubogota(pdf_path_or_file, columns: list[str] | None = No
     """
     rows: list[dict] = []
 
-    with pdfplumber.open(pdf_path_or_file) as pdf:
+    with abrir_extracto(pdf_path_or_file) as pdf:
         for page in pdf.pages:
             words = page.extract_words(use_text_flow=False, keep_blank_chars=False)
             if not words:

@@ -3,7 +3,7 @@ from services.extractor import _filtrar_columnas, _agrupar_por_lineas
 
 import logging
 import re
-import pdfplumber
+from services.pdf_clave import abrir_extracto
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def extract_extracto_bbva(pdf_path_or_file, columns: list[str] | None = None) ->
     """Extrae movimientos del extracto BBVA (tabla 'Detalles de transacciones')."""
     rows: list[dict] = []
 
-    with pdfplumber.open(pdf_path_or_file) as pdf:
+    with abrir_extracto(pdf_path_or_file) as pdf:
         for page in pdf.pages:
             words = page.extract_words(use_text_flow=False, keep_blank_chars=False)
             if not words:

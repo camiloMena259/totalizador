@@ -4,7 +4,7 @@ import logging
 import re
 from decimal import Decimal
 
-import pdfplumber
+from services.pdf_clave import abrir_extracto
 
 from services.extractor import _agrupar_por_lineas, _filtrar_columnas
 
@@ -102,7 +102,7 @@ def extract_detalle_bbva(pdf_path_or_file, columns: list[str] | None = None) -> 
     bloques: list[list[dict]] = []
     actual: list[dict] | None = None
 
-    with pdfplumber.open(pdf_path_or_file) as pdf:
+    with abrir_extracto(pdf_path_or_file) as pdf:
         for page in pdf.pages:
             words = page.extract_words(use_text_flow=False, keep_blank_chars=False)
             if not words:

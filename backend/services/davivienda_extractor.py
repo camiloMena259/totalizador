@@ -4,7 +4,7 @@ from services.extractor import _log_fila_descartada, _filtrar_columnas
 
 import logging
 import re
-import pdfplumber
+from services.pdf_clave import abrir_extracto
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ def extract_extracto_davivienda(
 
     rows: list[dict] = []
 
-    with pdfplumber.open(pdf_path_or_file) as pdf:
+    with abrir_extracto(pdf_path_or_file) as pdf:
         for page in pdf.pages:
             text = page.extract_text() or ""
             buffer: list[str] = []

@@ -18,6 +18,11 @@
   min-width: 240px;
 }
 
+.carga-card__campo-clave {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
 .carga-card__accion {
   flex-shrink: 0;
 }
