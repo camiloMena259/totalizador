@@ -1,9 +1,16 @@
 from __future__ import annotations
-from typing import Any
-from services.extractor import _log_fila_descartada, _filtrar_columnas, _agrupar_por_lineas, _normalizar_texto
 
 import logging
 import re
+from decimal import Decimal
+from typing import Any
+
+from services.extractor import (
+    _agrupar_por_lineas,
+    _filtrar_columnas,
+    _log_fila_descartada,
+    _normalizar_texto,
+)
 from services.pdf_clave import abrir_extracto
 
 logger = logging.getLogger(__name__)
@@ -11,6 +18,14 @@ logger = logging.getLogger(__name__)
 _RE_FECHA_FIDU = re.compile(r"^\d{2}/\d{2}/\d{4}$")
 _RE_MONTO_FIDU = re.compile(r"^-?[\d.]+,\d{2}$")
 _RE_TIPO_PART_FIDU = re.compile(r"^\d+(?:\.\d{1,2})?$")
+_RE_HASTA_FIDU = re.compile(r"Hasta\s*:\s*(\d{2}/\d{2}/\d{4})", re.IGNORECASE)
+_RE_RENDIMIENTO_FIDU = re.compile(
+    r"Rendimiento\s+(?:-?[\d.]+,\d{2}\s+)?\$\s*(-?[\d.]+,\d{2})",
+    re.IGNORECASE,
+)
+# El clasificador de intereses ya busca esta palabra. El panel del PDF
+# dice "Rendimiento" (singular); se normaliza para que entre en INTERESES.
+_CONCEPTO_RENDIMIENTO = "RENDIMIENTOS"
 
 # Canales conocidos. NO se usan para determinar la posición de las
 # columnas, solo ayudan a identificar el canal cuando conocemos su texto.
@@ -39,6 +54,45 @@ def _parse_monto_fidu(token: str) -> str:
     return f"-{resultado}" if negativo else resultado
 
 
+def _debito_credito(monto: str) -> tuple[str, str]:
+    """Un monto negativo es débito; uno positivo es crédito."""
+    if monto.startswith("-"):
+        return monto[1:], ""
+    return "", monto
+
+
+def _fila_fidu(
+    *,
+    dia: str,
+    mes: str,
+    concepto: str,
+    debito: str,
+    credito: str,
+    fecha: str,
+    canal: str = "",
+    valor_unidad: str = "",
+    unidades: str = "",
+    tipo_participacion: str = "",
+) -> dict[str, Any]:
+    """Fila con el mismo contrato que el resto de extractores del totalizador."""
+    return {
+        "DIA": dia,
+        "MES": mes,
+        "HORA": "",
+        "CONCEPTO": concepto,
+        "DEBITO": debito,
+        "CREDITO": credito,
+        "SALDO": "",
+        "OFICINA_CANAL": canal,
+        "VALOR_UNIDAD": valor_unidad,
+        "UNIDADES": unidades,
+        "TIPO_PARTICIPACION": tipo_participacion,
+        "MOVIMIENTO": "",
+        "FECHA_OPERACION": fecha,
+        "FECHA_VALOR": fecha,
+    }
+
+
 def _parse_fila_fidu(tokens: list[str]) -> dict[str, Any] | None:
     """
     Parsea una línea que comienza con fecha.
@@ -56,7 +110,7 @@ def _parse_fila_fidu(tokens: list[str]) -> dict[str, Any] | None:
     if not _RE_FECHA_FIDU.match(fecha):
         return None
 
-    dia, mes, anio = fecha.split("/")
+    dia, mes, _anio = fecha.split("/")
     resto = tokens[1:]
 
     if len(resto) < 5:
@@ -131,25 +185,64 @@ def _parse_fila_fidu(tokens: list[str]) -> dict[str, Any] | None:
     if not valor_transaccion_num:
         return None
 
-    debito = valor_transaccion_num[1:] if valor_transaccion_num.startswith("-") else ""
-    credito = valor_transaccion_num if not valor_transaccion_num.startswith("-") else ""
+    debito, credito = _debito_credito(valor_transaccion_num)
+    return _fila_fidu(
+        dia=dia,
+        mes=mes,
+        concepto=concepto,
+        debito=debito,
+        credito=credito,
+        fecha=fecha,
+        canal=canal,
+        valor_unidad=_parse_monto_fidu(valor_unidad),
+        unidades=_parse_monto_fidu(unidades),
+        tipo_participacion=tipo_participacion,
+    )
 
-    return {
-        "DIA": dia,
-        "MES": mes,
-        "HORA": "",
-        "CONCEPTO": concepto,
-        "DEBITO": debito,
-        "CREDITO": credito,
-        "SALDO": "",
-        "OFICINA_CANAL": canal,
-        "VALOR_UNIDAD": _parse_monto_fidu(valor_unidad),
-        "UNIDADES": _parse_monto_fidu(unidades),
-        "TIPO_PARTICIPACION": tipo_participacion,
-        "MOVIMIENTO": "",
-        "FECHA_OPERACION": fecha,
-        "FECHA_VALOR": fecha,
-    }
+
+def _movimiento_rendimiento(texto_cabecera: str) -> dict[str, Any] | None:
+    """
+    Fidubogotá informa el rendimiento en el panel general, no en el
+    detalle de movimientos. Se arma como un movimiento con la fecha Hasta
+    para que el totalizador lo sume en intereses.
+    """
+    texto = _normalizar_texto(texto_cabecera)
+    match_monto = _RE_RENDIMIENTO_FIDU.search(texto)
+    if not match_monto:
+        return None
+
+    monto = _parse_monto_fidu(match_monto.group(1))
+    if not monto or Decimal(monto) == 0:
+        return None
+
+    match_hasta = _RE_HASTA_FIDU.search(texto)
+    if not match_hasta:
+        logger.warning(
+            "[FIDUBOGOTA] Rendimiento %s sin fecha Hasta; no se agrega el movimiento.",
+            match_monto.group(1),
+        )
+        return None
+
+    fecha = match_hasta.group(1)
+    dia, mes, _anio = fecha.split("/")
+    debito, credito = _debito_credito(monto)
+    logger.debug("[FIDUBOGOTA] movimiento RENDIMIENTO fecha=%s monto=%s", fecha, monto)
+    return _fila_fidu(
+        dia=dia,
+        mes=mes,
+        concepto=_CONCEPTO_RENDIMIENTO,
+        debito=debito,
+        credito=credito,
+        fecha=fecha,
+    )
+
+
+def _es_detalle_movimientos(texto: str) -> bool:
+    return "DETALLE" in texto and "MOVIMIENTOS" in texto
+
+
+def _es_fin_movimientos(texto: str) -> bool:
+    return "DETALLE" in texto and "RENTABILIDADES" in texto
 
 
 def extract_extracto_fidubogota(pdf_path_or_file, columns: list[str] | None = None) -> list[dict]:
@@ -157,20 +250,25 @@ def extract_extracto_fidubogota(pdf_path_or_file, columns: list[str] | None = No
     Extrae movimientos del extracto Fidubogotá.
 
     No depende de coordenadas para identificar columnas. Regla principal:
+        Texto anterior a "DETALLE DE MOVIMIENTOS" -> panel general (rendimiento)
         Línea con FECHA        -> nuevo movimiento
         Línea SIN FECHA        -> continuación de la descripción anterior
         "DETALLE DE RENTABILIDADES" -> fin de movimientos
     """
     rows: list[dict] = []
+    fin_movimientos = False
+    en_detalle_movimientos = False
+    ultimo_row: dict | None = None
+    lineas_cabecera: list[str] = []
 
     with abrir_extracto(pdf_path_or_file) as pdf:
         for page in pdf.pages:
+            if fin_movimientos:
+                break
+
             words = page.extract_words(use_text_flow=False, keep_blank_chars=False)
             if not words:
                 continue
-
-            en_detalle_movimientos = False
-            ultimo_row: dict | None = None
 
             for linea in _agrupar_por_lineas(words):
                 linea = sorted(linea, key=lambda w: w["x0"])
@@ -180,17 +278,18 @@ def extract_extracto_fidubogota(pdf_path_or_file, columns: list[str] | None = No
 
                 texto_upper = " ".join(tokens).strip().upper()
 
-                if "DETALLE" in texto_upper and "MOVIMIENTOS" in texto_upper:
+                if _es_detalle_movimientos(texto_upper):
                     en_detalle_movimientos = True
                     continue
 
                 if not en_detalle_movimientos:
+                    lineas_cabecera.append(" ".join(tokens))
                     continue
 
-                if "DETALLE" in texto_upper and "RENTABILIDADES" in texto_upper:
+                if _es_fin_movimientos(texto_upper):
+                    fin_movimientos = True
                     break
 
-                # NUEVO MOVIMIENTO: toda línea que comienza con fecha.
                 if _RE_FECHA_FIDU.match(tokens[0]):
                     row = _parse_fila_fidu(tokens)
                     if row:
@@ -198,11 +297,14 @@ def extract_extracto_fidubogota(pdf_path_or_file, columns: list[str] | None = No
                         ultimo_row = row
                     continue
 
-                # CONTINUACIÓN DE DESCRIPCIÓN
                 if ultimo_row is not None:
                     texto_extra = " ".join(tokens).strip()
                     if texto_extra:
                         ultimo_row["CONCEPTO"] = (ultimo_row["CONCEPTO"] + " " + texto_extra).strip()
+
+    row_rendimiento = _movimiento_rendimiento(" ".join(lineas_cabecera))
+    if row_rendimiento is not None:
+        rows.append(row_rendimiento)
 
     for row in rows:
         row["CONCEPTO"] = _normalizar_texto(row["CONCEPTO"])
