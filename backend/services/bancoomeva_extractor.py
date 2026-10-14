@@ -7,12 +7,22 @@ from services.pdf_clave import abrir_extracto
 
 logger = logging.getLogger(__name__)
 
-_RE_FECHA_BANCOOMEVA = re.compile(r"^\d{2}/\d{2}/\d{4}$")
+# El mismo separador en toda la fecha: 01/09/2026 o 01-09-2026.
+_RE_FECHA_BANCOOMEVA = re.compile(r"^(\d{2})([/-])(\d{2})\2(\d{4})$")
 _RE_MONTO_BANCOOMEVA = re.compile(r"^\$?\s?[\d,]+\.\d{2}$")
 
 _INICIO_DESCRIPCION_BANCOOMEVA = {
-    "N/C", "RET", "TRASLADO", "CONSIGNACION", "PAGO", "ABONO", "NC", "NOTA",
+    "N/C", "N/CNC", "N/DND", "RET", "TRASLADO", "CONSIGNACION", "PAGO", "ABONO", "NC", "NOTA",
 }
+
+
+def _parse_fecha_bancoomeva(token: str) -> tuple[str, str, str] | None:
+    """Día, mes y año. Acepta el separador que traiga el extracto, barras o guiones."""
+    match = _RE_FECHA_BANCOOMEVA.match(token)
+    if not match:
+        return None
+    dia, _separador, mes, anio = match.groups()
+    return dia, mes, anio
 
 
 def _limpiar_monto_bancoomeva(token: str) -> str:
@@ -67,8 +77,10 @@ def extract_extracto_bancoomeva(pdf_path_or_file, columns: list[str] | None = No
                     continue
 
                 # Todas las filas válidas empiezan por una fecha
-                if not _RE_FECHA_BANCOOMEVA.match(tokens[0]):
+                partes_fecha = _parse_fecha_bancoomeva(tokens[0])
+                if partes_fecha is None:
                     continue
+                dia, mes, anio = partes_fecha
                 fecha = tokens[0]
 
                 montos = [w for w in linea if _RE_MONTO_BANCOOMEVA.match(w["text"])]
@@ -101,7 +113,6 @@ def extract_extracto_bancoomeva(pdf_path_or_file, columns: list[str] | None = No
                         concepto_tokens.append(texto)
 
                 concepto = " ".join(concepto_tokens)
-                dia, mes, anio = fecha.split("/")
 
                 rows.append({
                     "DIA": dia,
@@ -112,7 +123,7 @@ def extract_extracto_bancoomeva(pdf_path_or_file, columns: list[str] | None = No
                     "CREDITO": _limpiar_monto_bancoomeva(credito),
                     "SALDO": _limpiar_monto_bancoomeva(saldo),
                     "MOVIMIENTO": "",
-                    "FECHA_OPERACION": fecha,
+                    "FECHA_OPERACION": f"{dia}/{mes}/{anio}",
                     "FECHA_VALOR": "",
                 })
 
