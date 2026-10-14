@@ -10,6 +10,7 @@ from services.classifier import clasificar_movimientos
 from services.popular_extractor import extract_extracto_popular
 from services.occidente_extractor import extract_extracto_occidente
 from services.bbva_extractor import extract_extracto_bbva
+from services.bbva_adquirencias_extractor import extract_extracto_bbva_adquirencias
 from services.avVillas_extractor import extract_extracto_avvillas
 from services.bancoomeva_extractor import extract_extracto_bancoomeva
 from services.figuBogota_extractor import extract_extracto_fidubogota
@@ -178,6 +179,13 @@ async def totalizar_extracto_bogota(
     clave_extracto: Optional[str] = Form(None),
 ) -> TotalizacionResponse:
     return await _procesar_extracto(file, extract_extracto_bogota, clave_extracto)
+
+@app.post("/api/extractos/totalizar/bbva/adquirencias", response_model=TotalizacionResponse)
+async def totalizar_extracto_bbva_adquirencias(
+    file: UploadFile = File(...),
+    clave_extracto: Optional[str] = Form(None),
+) -> TotalizacionResponse:
+    return await _procesar_extracto(file, extract_extracto_bbva_adquirencias, clave_extracto)
 
 @app.post("/api/extractos/totalizar/bbva/detalle", response_model=TotalizacionResponse)
 async def totalizar_detalle_bbva(

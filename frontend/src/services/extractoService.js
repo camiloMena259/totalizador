@@ -15,6 +15,7 @@ export const BANCOS = {
   popular_detalle: { label: 'Popular (detalle de movimientos)', endpoint: `${API_BASE}/popular/detalle` },
   bbva: { label: 'BBVA', endpoint: `${API_BASE}/bbva` },
   bbva_detalle: { label: 'BBVA (detalle de movimientos)', endpoint: `${API_BASE}/bbva/detalle` },
+  bbva_adquirencias: { label: 'BBVA ADQUIRENCIAS', endpoint: `${API_BASE}/bbva/adquirencias` },
   avvillas: {label: 'Banco AV Villas', endpoint: `${API_BASE}/avvillas` },
   bancoomeva: {label: 'Bancoomeva', endpoint: `${API_BASE}/bancoomeva`},
   fidubogota: {label: 'Fidu Bogotá', endpoint: `${API_BASE}/fidubogota`},
